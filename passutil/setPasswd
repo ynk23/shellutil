@@ -1,0 +1,37 @@
+#!/bin/bash
+
+## Information
+##
+## ./encode.sh を使用して
+## 引数に与えられたパスワードを暗号化し
+## $HOME/.local-passwd ファイルに書き出します
+##
+## 引数(必須)
+##
+## -u : ユーザ名
+## -p : パスワード(平文) 
+PATH="$(dirname $0):$PATH"
+function usage(){
+echo "usage : $(basename $0) -u username -p password"
+}
+
+while getopts "u:p:" opt; do
+  case $opt in
+    u) user=${OPTARG} ;;
+    p) passwd=${OPTARG} ;;
+    *) usage; exit 1 ;;
+  esac
+done
+
+if [[ -z ${user} ]] || [[ -z ${passwd} ]]; then
+  usage
+  exit 1
+fi
+#パスワードを暗号化
+enc_passwd=$(encode "${passwd}")
+if [ -f $HOME/.local-passwd ] ; then
+  #すでにユーザーが存在する場合は削除して上書きする
+  sed -i -e "/^${user}\t.*/D" $HOME/.local-passwd
+fi
+
+printf "%s\t%s\n" ${user} ${enc_passwd} >> $HOME/.local-passwd

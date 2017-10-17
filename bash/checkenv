@@ -1,0 +1,20 @@
+#!/bin/bash
+
+## usage: checkenv '$variable'
+## '$variable' is expected string.
+## '$variable' is double expanded by this function.
+## if a reference destination of '$variable' is not exist, then return ERROR.
+var=$1;
+if [[ -z $var ]]; then # if argument is not exist, then return ERROR.
+  echo "ERROR : $(basename $0)($LINENO): argument is required." >&2;
+  echo "usage : checkenv '\$variable'"
+  exit 1;
+fi
+if ! echo $var | grep '^\$' >/dev/null; then # if argument is not contained '$', then return ERROR.
+  echo "ERROR : $(basename $0)($LINENO): argument is expected that '\$' contained, but actual is $var.">&2;
+fi
+eval ref=$var
+if [[ -z $ref ]];then # if not exported $var, then return ERROR.
+  echo "ERROR : $(basename $0)($LINENO): $var is NOT exported." >&2;
+  exit 1;
+fi

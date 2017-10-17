@@ -1,0 +1,91 @@
+# Source global definitions
+#if ( -f /etc/csh.login ) then
+#  source /etc/csh.login
+#endif
+# Source complete definitions
+if ( -f $HOME/.complete ) then
+  source $HOME/.complete
+endif
+# Source dircolor definitions
+if ( -f $HOME/.dircolors ) then
+  eval `dircolors -c $HOME/.dircolors`
+endif
+# set prompt color and format
+# [user@host:<yellow>current-dir</yellow> |<red>return-code</red>]
+# > 
+set prompt='[%n@%m:%{\33[01;33m%}%~%{\33[0m%} %{\33[01;31m%}rc:%$status%{\33[0m%}]\n > '
+#save history num to memory
+set history=50
+#save history num to file when shell closed
+#when you close some shell, save to merge at history file.
+set savehist=(100 merge)
+# deny override with redirect
+#set noclobber
+# don't bell
+set nobeep
+# don't logout with ^D
+set ignoreeof
+# show Completion possible with ^I
+set autolist=ambiguous
+# extend Completion
+set complete=enhance 
+# spell check when completion
+#set autocorrect
+# spell check every press return key
+#set correct=all
+# auto expand history when completion
+set autoexpand
+# save directory stack when logout
+set savedirs
+# designate message catalog
+#set catalog=ja.ruri2.cat
+set catalog=ja.sakura.cat
+# calor display a  message
+set colorcat
+# if not found sub-directory in current-directory,
+# command "cd" search follow directories
+set cdpath=$HOME
+# color display using command "ls"
+#set color
+# if command "pushd" without argument, then command identify "pushd ~"
+set pushdtohome
+# movable only directory name
+set implicitcd=verbose
+# confirm before command "rm *"
+set rmstar
+# watch anyone login and logout
+#set watch = (any any)
+# every 5 min.
+#set watch = (5 any any)
+# auto logout after 10 min
+#set autologout=10
+# check mail every 10 min
+#set mail 600 /var/spool/mail/$USER
+#set mail 600 $MAIL
+# check mail
+#set mail $MAIL
+# Emacs style key binding
+bindkey -e
+# enable search on prompt
+bindkey "^R" i-search-back
+bindkey "^S" i-search-fwd
+# complement in order of completion candidates
+bindkey "^[i" complete-word-fwd
+bindkey "^[I" complete-word-back
+# display current directory on title bar
+if ( $term =~ *term ) then
+alias cwdcmd 'echo -n "\033]0;$cwd\007"'
+endif
+# set alias
+alias rr rm -rf
+alias rm rm -i
+alias cp cp -i
+alias mv mv -i
+alias pd pushd
+alias po popd
+alias cd "cd \!*; dirs"
+alias ps ps -fU`whoami` --forest
+alias la ls -lhAF --color=auto 
+alias e "emacs &"
+alias enw "emacs -nw"
+alias gitlog "git log --oneline --decorate --graph --branches --tags --remotes"

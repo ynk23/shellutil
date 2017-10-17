@@ -1,0 +1,6 @@
+[user]
+	email = ***
+	name = ***
+[core]
+	editer = vim -c \"set fenc=utf-8\"
+	pager = nkf -w | LESSCHARSET=utf-8 less

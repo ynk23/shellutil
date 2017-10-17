@@ -1,0 +1,44 @@
+#!/usr/bin/expect -f
+if { $argc != 4 } {
+  puts "usage : remotebashcmd USER HOSTNAME PASSWORD COMMAND"
+  exit 1
+}
+
+set USER [ lindex $argv 0 ]
+set HOSTNAME [ lindex $argv 1 ]
+set PASSWORD [ lindex $argv 2 ]
+set CMD [ lindex $argv 3]
+set prompt "\[#$%>\]"
+set timeout -1
+
+spawn bash -c "echo $CMD | ssh $USER@$HOSTNAME bash"
+expect {
+  -glob "Are you sure you want to continue connecting (yes/no)?" {
+    send "yes\r"
+    exp_continue
+  } -glob "password:" {
+    send -- "$PASSWORD\r"
+  }
+}
+
+expect { 
+  -regexp "$prompt" {
+    catch wait result
+    set OS_ERROR [ lindex $result 2 ]; # OS_ERROR code
+    if { $OS_ERROR == -1 } {
+      send_user "Fail to exec"
+      exit 127
+    }
+    set STATUS [ lindex $result 3 ]; # spawn status code
+    exit $STATUS
+  } eof {
+    catch wait result
+    set OS_ERROR [ lindex $result 2 ]; # OS_ERROR code
+    if { $OS_ERROR == -1 } {
+      send_user "Fail to exec"
+      exit 127
+    }
+    set STATUS [ lindex $result 3 ]; # spawn status code
+    exit $STATUS
+  }
+}

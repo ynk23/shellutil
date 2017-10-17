@@ -1,0 +1,29 @@
+#!/usr/bin/expect -f
+
+if { $argc != 4 } {
+  puts "usage : remotebash USER HOSTNAME PASSWORD CMDFILE"
+  exit 1
+}
+set USER [ lindex $argv 0 ]
+set HOSTNAME [ lindex $argv 1 ]
+set PASSWORD [ lindex $argv 2 ]
+set CMDFILE [ lindex $argv 3]
+set prompt "\[#$%>\]"
+set timeout -1
+
+spawn bash -c "cat $CMDFILE | ssh $USER@$HOSTNAME bash"
+expect {
+  -glob "Are you sure you want to continue connecting (yes/no)?" {
+    send "yes\r"
+    exp_continue
+  } -glob "password:" {
+    send -- "$PASSWORD\r"
+  }
+}
+expect { 
+  -regexp "$prompt" {
+    exit 0
+  } eof {
+    exit 0
+  }
+}

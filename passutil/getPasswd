@@ -1,0 +1,32 @@
+#!/bin/bash
+
+## Information
+##
+## ./decode.sh を使用し
+## $HOME/.local-passwd ファイルからパスワードを復号します
+##
+## 引数(必須)
+##
+## string : 復号したいパスワードに対応するユーザー名
+##
+PATH="$(dirname $0):$PATH"
+function usage(){
+echo "usage : $(basename $0) string"
+}
+## check environment variable.
+if [[ -z $HOME ]];then
+  echo "ERROR: empty \$HOME">&2
+  exit 1
+fi
+user=$1
+if [[ -z ${user} ]]; then
+  usage
+  exit 1
+fi
+
+aline=$(grep -w ${user} $HOME/.local-passwd 2>/dev/null | tail -n 1)
+enc_passwd=${aline##*$'\t'} # タブ文字まで削除
+if [[ -z ${enc_passwd} ]]; then
+  exit 1 
+fi
+decode ${enc_passwd}

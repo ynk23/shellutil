@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# set arguments to array
+# dir/aaa dir/bbb dir/ccc -> aray
+files=($@)
+
+# variable check
+if [[ ${files[@]} == "" ]]; then
+        echo "error: required augument";
+        exit 1
+fi
+
+# loop array
+for file in ${files[@]}
+do
+        # loop line in file
+        while read line
+        do
+                # add filename at head (comma separated)
+                echo "\"${file##*/}\",${line}"
+        done < ${file}
+done

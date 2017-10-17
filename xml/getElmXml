@@ -1,0 +1,60 @@
+#!/usr/bin/ruby
+# coding: UTF-8
+
+# Note. getXml
+# show elements as string at the specific xpath.
+#
+# usage :
+# getXml [--element --field] -p|--xpath XPATH -f|--file XML_FILE
+#
+
+require 'optparse'
+options = {}
+required = [:xpath, :file]
+OptionParser.new do |opt|
+  begin
+    opt.on("-p XPATH" ,"--xpath", "required. ex) document-root/par-element/chi-element/..."){|v| options[:xpath] = v}
+    opt.on("-f XML_FILE", "--file", "required. ex) foobar.xml") {|v| options[:file] = v}
+    opt.on("--element", "option. no argument.") {options[:elm] = true}
+    opt.on("--field", "option. no argument.") {options[:fld] = true}
+    opt.on("-h", "--help", "Show this message") { puts opt; exit }
+    opt.parse!(ARGV)
+    for field in required
+      raise ArgumentError.new if options[field].nil?
+    end
+  rescue => e
+    puts(opt.help)
+    exit 1
+  end
+end
+options[:elm] = false if options[:elm].nil?
+options[:fld] = false if options[:fld].nil?
+
+require "rexml/document"
+origin = nil
+begin
+  origin = REXML::Document.new(File.new(options[:file],'r')) # open READONLY mode.
+rescue => e
+  print("ERROR : #{e.class}\n#{e}\n")
+  exit 1
+end
+elements = origin.root.get_elements(options[:xpath])
+if elements.length == 0
+  puts ( "no element")
+  exit 1
+else
+  if options[:elm]
+    for element in elements
+      text = element.get_text.to_s
+      text.strip! # Removes leading and trailing whitespace. whitespace means \t\r\n\f\v.
+      if options[:fld]
+        puts("#{element.xpath}/#{text}") unless text.nil? or text.empty? # print
+      else
+        options[:elem] = false if options[:elem].nil?
+      end
+    end
+  else
+    puts(elements)
+  end
+  exit 0
+end

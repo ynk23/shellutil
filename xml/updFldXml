@@ -1,0 +1,61 @@
+#!/usr/bin/ruby
+# coding: UTF-8
+
+# Note. updXml
+# update filed of specified xpath.
+# if exist specified xpath, then override the old field with update-string.
+# successfully updated, override the xml-file.
+#
+# usage :
+# updateXml -p|--xpath XPATH -u|--update STRING -f|--file XML_FILE
+#
+
+require 'optparse'
+args = nil
+options = {}
+required = [:xpath, :string, :file]
+OptionParser.new do |opt|
+  begin
+    opt.on("-p XPATH" ,"--xpath", "required. ex) document-root/par-element/chi-element/..."){|v| options[:xpath] = v}
+    opt.on("-u STRING", "--update", "option. if NOT input update-string from STDIN, then REQUIRED add option. ex) foo") {|v| options[:string] = v}
+    opt.on("-f XML_FILE", "--file", "required. ex) foobar.xml") {|v| options[:file] = v}
+    opt.on("-h", "--help", "Show this message") { puts opt; exit }
+    opt.parse!(ARGV)
+    for field in required
+      raise ArgumentError.new if options[field].nil?
+    end
+  rescue => e
+    puts(opt.help)
+    exit 1
+  end
+end
+if File.pipe?(STDIN) or File.select([STDIN], [], [], 0) != nil then # stdin > pipe or redirect
+  args = STDIN.read
+end
+
+require "rexml/document"
+origin = nil
+string = nil
+begin
+  origin = REXML::Document.new(File.new(options[:file],'r')) # open READONLY mode.
+  if options[:string]
+    string = REXML::Text.new(options[:string].strip,false,nil,false)
+  elsif args
+    string = REXML::Text.new(args.strip,false,nil,false)
+  end
+rescue => e
+  print("ERROR : #{e.class}\n#{e}\n")
+  exit 1
+end
+elements = origin.root.get_elements(options[:xpath])
+if elements.length == 0 or elements.length > 1
+  puts("ERROR : XPATH(#{options[:xpath]}) is NOT identify. exist none or exist 2 or more.")
+  exit 1
+elsif elements[0].texts.length > 1
+  puts("ERROR : text node exist 2 or more under the specified XPATH(#{options[:xpath]}).")
+  exit 1
+end
+p(string)
+elements[0].text = string
+formatter = REXML::Formatters::Default.new
+formatter.write(origin,File.new(options[:file],'w')) # print. open WRITE mode.

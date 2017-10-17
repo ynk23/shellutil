@@ -1,0 +1,23 @@
+#!/bin/bash
+
+## Information
+##
+## openssl コマンドを使用して文字列を暗号化します.
+## 
+## [openssl オプション]
+## -aes-128-cbc：AES暗号、128ビット、CBCモード
+## -e：暗号化
+## -base64：表示をBase64で表示する。
+## -pass pass:cipher：パスワードフレーズとしてcipherを使用
+##
+function usage(){
+echo "usage : $(basename $0) string"
+}
+
+str=$1
+if [[ -z ${str} ]] ;then
+  usage
+  exit 1
+fi
+
+echo ${str} | openssl enc -aes-128-cbc -e -base64 -pass pass:cipher

@@ -1,0 +1,60 @@
+#!/usr/bin/ruby
+# coding: UTF-8
+
+# Note. addElmXml
+# add to the LAST of specific xpath children.
+# successfully added, override the xml-file.
+#
+# usage :
+# addElmXml -p|--path XPATH [--xml XML --file XML_FILE] -o|--out XML_FILE
+#
+
+require 'optparse'
+args = nil
+options = {}
+required = [:xpath, :file]
+OptionParser.new do |opt|
+  begin
+    opt.on("-p XPATH" ,"--xpath", "required. ex) document-root/par-element/chi-element/..."){|v| options[:xpath] = v}
+    opt.on("--in-xml XML", "option.  e.g.) <foo><bar>some-text</bar></foo>") {|v| options[:inxml] = v}
+    opt.on("--in-file XML_FILE", "option.  e.g.) add.xml") {|v| options[:infile] = v}
+    opt.on("-file XML_FILE", "--file", "required. ex) foobar.xml") {|v| options[:file] = v}
+    opt.on("-h", "--help", "Show this message") { puts opt; exit }
+    opt.parse!(ARGV)
+    for field in required
+      raise ArgumentError.new if options[field].nil?
+    end
+  rescue => e
+    puts(opt.help)
+    exit 1
+  end
+end
+if File.pipe?(STDIN) or File.select([STDIN], [], [], 0) != nil then # stdin > pipe or redirect
+  args = STDIN.read
+end
+
+require "rexml/document"
+origin = nil
+xml = nil
+begin
+  origin = REXML::Document.new(File.new(options[:file],'r')) # open READONLY mode.
+  if options[:file]
+    xml = REXML::Document.new(File.new(options[:infile], 'r')) #open REDONLY mode
+  elsif options[:xml]
+    xml = REXML::Document.new(options[:inxml])
+  elsif args
+    xml = REXML::Document.new(args)
+  end
+rescue => e
+  print("ERROR : #{e.class}\n#{e}\n")
+  exit 1
+end
+elements = origin.root.get_elements(options[:xpath])
+if elements.length == 0 or elements.length > 1
+  puts("ERROR : XPATH(#{options[:xpath]}) is NOT identify. not exist, otherwise 2 or more exist.")
+  exit 1
+end
+added = elements[0].add_element(xml.root)
+puts("SUCCESS add : #{added.xpath}")
+formatter = REXML::Formatters::Default.new
+formatter.write(origin,File.new(options[:file],'w')) # print. open WRITE mode.

@@ -1,0 +1,46 @@
+#!/usr/bin/ruby
+# coding: UTF-8
+
+# Note. delElmXml
+# delete a element at the specific xml-path.
+# successfully deleted, override the xml-file.
+#
+# usage :
+# delXml -p|--xpath XPATH -o|--out XML_FILE
+#
+
+require 'optparse'
+options = {}
+required = [:xpath, :file]
+OptionParser.new do |opt|
+  begin
+    opt.on("-p XPATH" ,"--xpath", "required. ex) document-root/par-element/chi-element/..."){|v| options[:xpath] = v}
+    opt.on("-f XML_FILE", "--file", "required. ex) foobar.xml") {|v| options[:file] = v}
+    opt.on("-h", "--help", "Show this message") { puts opt; exit }
+    opt.parse!(ARGV)
+    for field in required
+      raise ArgumentError.new if options[field].nil?
+    end
+  rescue => e
+    puts(opt.help)
+    exit 1
+  end
+end
+
+require "rexml/document"
+origin = nil
+begin
+  origin = REXML::Document.new(File.new(options[:file],'r')) # open REDONLY mode.
+rescue => e
+  print("ERROR : #{e.class}\n#{e}\n")
+  exit 1
+end
+elements = origin.root.get_elements(options[:xpath])
+if elements.length == 0 or elements.length > 1
+  puts("ERROR : XPATH(#{options[:xpath]}) is NOT identify. not exist, otherwise 2 or more exist.")
+  exit 1
+end
+deleted = origin.elements.delete(elements[0].xpath) # delete element.
+puts("SUCCESS delete : #{deleted.xpath}")
+formatter = REXML::Formatters::Default.new
+formatter.write(origin,File.new(options[:file],'w')) # print. open WRITE mode.
